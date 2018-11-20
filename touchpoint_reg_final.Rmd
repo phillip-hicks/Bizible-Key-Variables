@@ -1,0 +1,411 @@
+```{r}
+data <- touch_reg_em_2
+
+data_length <- length(data$salesforce_opportunity.id)
+ops<-unique(data$salesforce_opportunity.id)
+op_count <- length(ops)
+op_id <- rep(0, op_count)
+result <- rep(0, op_count)
+
+touch_frame <- data_frame(op_id, result)
+nms<-rep(NA, 15*14+3)
+nms[1]<-"op_id"
+nms[2]<-"result"
+nms[3] <- "touch_total"
+
+i <- 1
+names <- c("Content_Syndication", "Customer_Advocacy", "Direct", "Direct_Mail", "Display", "Email", "Field_Marketing", "List_Buys", "Organic_Search", "Other", "Paid_Listing", "Paid_Search", "Social", "Sponsored_Webinar", "Web_Referral")
+c<-1
+while(i<= 14){
+  c<-1
+  while(c<=15){
+  g<-paste (names[c], i, sep = "_")
+  nms[15*(i-1)+c+3]<-g
+  c<-c+1
+  }
+  i <- i +1
+}
+
+p<-3
+while (p<= (14*15+3)){
+  touch_frame[p]<-rep(0, op_count)
+  p<-p+1
+}
+
+colnames(touch_frame)<-nms
+
+```
+
+
+
+```{r}
+
+place_data <- 1
+place_ops <- 1
+place_frame <- 1
+prev_place <- 1
+while (place_data <= data_length){
+  t_total <- data$touch_total[place_data]
+  t_order <- data$touch_order[place_data]
+  
+  position <- data$bizible_attribution_touchpoints.bizible_touchpoint_position[place_data]
+  position <- toString(position)
+  position <- strsplit(position, ",")
+  single_pos1<-position[[1]][1]
+  single_pos2 <- gsub(" ", "", single_pos1, fixed = TRUE)
+  if(data$touch_order[place_data] == data$touch_total[place_data]){
+    touch_frame$op_id[place_ops] <- data$salesforce_opportunity.id[place_data]
+    touch_frame$result[place_ops] <- data$salesforce_opportunity.stage_name[place_data]
+    touch_frame$touch_total[place_ops] <- data$touch_total[place_data]
+  }
+  if(t_total == 1){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(14), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    prev_place <- 13
+    place_ops <- place_ops + 1
+    place_frame <- 1
+  }
+  else if (t_order == 1 && t_total != 1){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(1), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    prev_place <- 13
+    place_ops <- place_ops +1
+    place_frame <- 1
+  }
+  
+  else if(single_pos2 == "Closed"){
+    prev_place <- 13
+    
+    place_frame <- place_frame
+  }
+  else if(single_pos2 == "FT"){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(1), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+    prev_place <- 1
+  }
+  else if(single_pos2 == "LC"){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(3), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+    prev_place <- 3
+  }
+  else if(single_pos2 == "OC"){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(5), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+    prev_place <- 5
+  }
+  else if (single_pos2 == "1.a.-BDR/MRGHandofftoSalesRep"){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(6), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+    prev_place <- 6
+  }
+  else if (single_pos2 == "2-Discovery"){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(7), sep = "_")
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+    prev_place <- 7
+  }
+  else if (single_pos2 == "3-Evaluation"){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(8), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+    prev_place <- 8
+  }
+  else if (single_pos2 == "4-Proposal/ROI"){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(9), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+    prev_place <- 9
+  }
+  else if (single_pos2 == "5-Negotiations"){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(10), sep = "_")
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+    prev_place <- 10
+  }
+   else if (single_pos2 == "6-FinalContractOutForSignature"){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(11), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+    prev_place <- 11
+   }
+   else if (single_pos2 == "DealReview"){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(12), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+    prev_place <- 12
+   }
+   else if (single_pos2 == "ClosedRecycle"){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(13), sep = "_")
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+    prev_place <- 13
+   }
+  else if (single_pos2 == "Form" && prev_place == 3){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(2), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+  }
+  else if (single_pos2 == "Form" && prev_place == 5){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(4), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+  }
+  else if (single_pos2 == "Form"){
+    touch <- paste(data$bizible_attribution_touchpoints.bizible_marketing_channel[place_data], toString(prev_place), sep = "_") 
+    touch <- gsub(" ", "_", touch, fixed = TRUE)
+    num<-grep(touch, colnames(touch_frame))
+    touch_frame[place_ops,num[1]] <- touch_frame[place_ops,num[1]] + 1
+    place_frame <- place_frame + 1
+  }
+  else{print(single_pos2)}
+ 
+  
+  place_data <- place_data + 1
+}
+
+print(place_data)
+head(touch_frame,30)
+
+```
+
+
+```{r}
+write.table(touch_frame, "em_reg_frame_2", sep = "\t")
+```
+
+
+
+```{r}
+
+opdata <- em_reg_frame_2
+
+
+
+opdata <- opdata%>%
+  select (-(op_id))
+
+```
+
+
+
+```{r}
+
+
+opdata_clean<-opdata
+
+
+
+win<- opdata_clean %>%
+  select(result) %>%
+  magrittr::equals("Closed Won")
+
+opdata_numeric<- opdata_clean %>%
+  select (-(result))
+
+numberOfTrainingSamples <- round(length(opdata_clean$Direct_1) * .7)
+win <-as.numeric(win)
+opdata_numeric1 <- cbind(opdata_numeric,win)
+train_data_frame<-(opdata_numeric1[1:numberOfTrainingSamples,])
+test_data_frame <- (opdata_numeric1[-(1:numberOfTrainingSamples),])
+
+
+```
+
+
+```{r}
+train_data_frame$win <- as.factor(train_data_frame$win)
+varNames<- names(train_data_frame)
+varNames <- varNames[!varNames %in% c("win")]
+varNames1 <- paste(varNames, collapse = "+")
+rf.form <- as.formula(paste("win", varNames1, sep = " ~ "))
+rare.class.prevalence = 0.2
+
+model_rf<-randomForest(rf.form, train_data_frame, ntree=5, importance = T,cutoff=c(1-rare.class.prevalence,rare.class.prevalence))
+predRFtrain<- predict(model_rf, train_data_frame)
+
+```
+
+```{r}
+test_data_frame$win <- as.factor(test_data_frame$win)
+test_data_frame=test_data_frame %>% mutate_if(is.character, as.factor)
+predRFtest <- predict(model_rf, test_data_frame)
+confusionMatrix(data = predRFtest, reference = test_data_frame$win)
+```
+
+
+```{r}
+
+Y<-caret::varImp(model_rf)
+Y<- Y[order(-Y$`0`),]
+print(Y)
+```
+
+
+
+
+
+```{r}
+
+opdata_matrix <- data.matrix(opdata_numeric)
+
+train_data <-as.matrix(opdata_matrix[1:numberOfTrainingSamples,])
+train_labels <- win[1:numberOfTrainingSamples]
+test_data <- as.matrix(opdata_matrix[-(1:numberOfTrainingSamples),])
+test_labels <- win[-(1:numberOfTrainingSamples)]
+
+
+
+```
+
+
+
+
+
+
+
+
+```{r}
+dtrain <- xgb.DMatrix(data = train_data, label = train_labels)
+dtest <- xgb.DMatrix(data = test_data, label = test_labels)
+```
+
+
+```{r}
+
+nu<-seq(1:20)
+
+dep <- rep(0,20)
+for (i in nu){
+model_tuned <- xgboost(data = dtrain,
+                       booster = "dart",
+                       eta  = 0.2, 
+                       verbose = 0,
+                       print_every.n = 10,
+                      max.depth =i,
+                       nround = 50,
+                      early_stopping_rounds = 10,
+                      objective = "binary:logistic"
+                      )
+                      # scale_pos_weight = negative_cases/positive_cases)
+pred <- predict(model_tuned, dtest)
+err<- mean(as.numeric(pred>.5)!= test_labels)
+print(i)
+print(paste("test-error=", err))
+
+dep[i]<-err
+}
+
+
+
+
+
+
+```
+
+
+```{r}
+negative_cases <- sum(train_labels == FALSE)
+postive_cases <- sum(train_labels == TRUE)
+model_tuned <- xgboost(data = dtrain,
+                       booster = "gbtree",
+                       eta  = 0.2, 
+                       verbose =1,
+                       print_every.n = 10,
+                      max.depth =4,
+                       nround = 30,
+                      early_stopping_rounds = 10,
+                      objective = "binary:logistic",
+                      
+                      scale_pos_weight = negative_cases/positive_cases)
+pred <- predict(model_tuned, dtest)
+err<- mean(as.numeric(pred>.5)!= test_labels)
+print(i)
+print(paste("test-error=", err))
+```
+
+
+```{r}
+params <- list(booster = "gbtree", objective = "binary:logistic", eta=0.15, verbose=0, max_depth=3)
+```
+
+
+
+
+
+
+```{r}
+
+negative_cases <- sum(train_labels == FALSE)
+postive_cases <- sum(train_labels == TRUE)
+params <- list(booster = "gbtree", objective = "binary:logistic", eta=0.2, verbose=0, max_depth=4)
+xgbcv <- xgb.cv( params = params, data = dtrain, nrounds = 30,
+            nfold = 5,early_stop.round = 10, verbose = 0,scale_pos_weight = negative_cases/positive_cases)
+
+xgb1 <- xgb.train (params = params, data = dtrain, nrounds =30, watchlist = list(val=dtest,train=dtrain), early_stop.round = 10, verbose = 0,scale_pos_weight = negative_cases/positive_cases)
+
+xgbpred <- predict (xgb1,dtest, na.action = na.pass)
+xgbpred <- ifelse (xgbpred > 0.5 ,1,0)
+
+
+err<- mean(as.numeric(xgbpred>.5)!= test_labels)
+print(paste("test-error=", err))
+
+
+```
+
+```{r}
+xgbpred1<-factor(xgbpred)
+test_labels1<-factor(test_labels)
+str(xgbpred1)
+str(test_labels1)
+confusionMatrix(xgbpred1, test_labels1)
+```
+
+
+```{r}
+features = colnames(train_data)
+importance_matrix_1 <- xgb.importance(features, model = xgb1)
+print(importance_matrix_1) 
+
+```
+
+
+
+
+
+
+
